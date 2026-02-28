@@ -25,7 +25,7 @@ const backgroundShaderMaterial = new THREE.ShaderMaterial({
   },
 })
 
-const backgroundGeometry = new THREE.PlaneGeometry(50, 50)
+const backgroundGeometry = new THREE.PlaneGeometry(100, 100)
 const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundShaderMaterial)
 backgroundMesh.position.z = -10
 backgroundMesh.frustumCulled = false
