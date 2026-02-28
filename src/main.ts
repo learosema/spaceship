@@ -93,7 +93,7 @@ function createShip(): THREE.Object3D {
 }
 
 const ship = createShip();
-ship.position.y = 1;
+ship.position.y = 0.7;
 scene.add(ship);
 ship.rotation.y = Math.PI / 2; // point forward along +x
 ship.scale.set(2, 2, 2);
@@ -104,7 +104,7 @@ camera.position.z = 5
 function animate() {
   requestAnimationFrame(animate)
   
-  ship.rotation.x = Math.sin(timer.getElapsed()) * 0.4;
+  ship.rotation.x = Math.sin(timer.getElapsed()) * 0.26;
   ship.rotation.y = Math.PI / 2 + Math.sin(timer.getElapsed() * 0.5 + .1) * 0.1;
   ship.rotation.z = Math.cos(0.2 * timer.getElapsed()) * 0.05;
   updateUniforms()
