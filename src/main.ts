@@ -98,13 +98,14 @@ scene.add(ship);
 ship.rotation.y = Math.PI / 2; // point forward along +x
 ship.scale.set(2, 2, 2);
 
-
+camera.position.y = 0.5
 camera.position.z = 5
 
 function animate() {
   requestAnimationFrame(animate)
-  
-  ship.rotation.x = Math.sin(timer.getElapsed()) * 0.26;
+  camera.position.y = 0.5 + Math.sin(timer.getElapsed() + .2) * 0.25;
+  ship.position.y = 0.7 + Math.sin(timer.getElapsed() * 4) * 0.1;
+  ship.rotation.x = Math.sin(timer.getElapsed()) * 0.1;
   ship.rotation.y = Math.PI / 2 + Math.sin(timer.getElapsed() * 0.5 + .1) * 0.1;
   ship.rotation.z = Math.cos(0.2 * timer.getElapsed()) * 0.05;
   updateUniforms()
