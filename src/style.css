@@ -39,6 +39,7 @@ canvas {
 
 #app {
   position: absolute;
+  pointer-events: none;
   padding: 1.5rem;
   top: 0;
   left: 0;

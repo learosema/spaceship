@@ -1,6 +1,7 @@
 uniform float time;
 uniform vec2 resolution;
 varying vec2 vUv;
+varying vec3 vPosition;
 
 // just a bunch of sin & cos to generate an interesting pattern
 float cheapNoise(vec3 stp) {
@@ -17,10 +18,15 @@ float cheapNoise(vec3 stp) {
 }
 
 void main() {
-  vec3 p = vec3(vUv.x, vUv.y + time * 0.05, time * .5);
-  float n = .125 + .5 * cheapNoise(p * 0.125);
-  float m = .5 + .5 * cheapNoise(p * 0.3);
-  float o = .5 + .5 * cheapNoise(p * 0.7);
+  // use the normalized 3D world position so the pattern is continuous across the sphere
+  vec3 pos = normalize(vPosition);
+  vec3 base = pos * 4.0;
+  // small time-based drift to animate the pattern without introducing seams
+  base += vec3(time * 0.2, time * 0.3, time * 0.5);
+
+  float n = .125 + .5 * cheapNoise(base * 0.0125);
+  float m = .5 + .5 * cheapNoise(base * 0.03);
+  float o = .5 + .5 * cheapNoise(base * 0.07);
   float bg0 = (.25 + .25 * sin(n * 4. * 3.14159));
   float bg1 = (.25 + .25 * sin(m * 4. * 3.14159));
   float bg2 = (.25 + .25 * sin(o * 4. * 3.14159));

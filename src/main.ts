@@ -1,9 +1,12 @@
 import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import './style.css'
 import backgroundVS from './shaders/background.vs'
 import backgroundFS from './shaders/background.fs'
 import groundVS from './shaders/ground.vs'
 import groundFS from './shaders/ground.fs'
+
+
 
 const canvas: HTMLCanvasElement|null = document.querySelector('#canvas') as HTMLCanvasElement
 
@@ -11,8 +14,23 @@ if (! canvas) {
   throw new Error('Canvas element not found')
 }
 
+
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+const controls = new OrbitControls(camera, canvas)
+const shipTarget = new THREE.Vector3()
+
+// Initialize camera
+camera.position.set(1, 6, 6)
+controls.target.set(0, 1, 0)
+controls.enableDamping = true
+controls.dampingFactor = 0.05
+controls.screenSpacePanning = false
+controls.minDistance = 4
+controls.maxDistance = 20
+controls.maxPolarAngle = Math.PI / 2
+controls.update()
+
 const renderer = new THREE.WebGLRenderer({ antialias: true, canvas })
 renderer.setSize(window.innerWidth, window.innerHeight)
 
@@ -25,17 +43,22 @@ const backgroundShaderMaterial = new THREE.ShaderMaterial({
   },
 })
 
-const backgroundGeometry = new THREE.PlaneGeometry(100, 100)
+const objectGroup = new THREE.Group()
+scene.add(objectGroup)
+
+
+const backgroundGeometry = new THREE.SphereGeometry(50, 64, 64)
+backgroundShaderMaterial.side = THREE.BackSide
 const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundShaderMaterial)
 backgroundMesh.position.z = -10
 backgroundMesh.frustumCulled = false
 scene.add(backgroundMesh)
 
-const groundGeometry = new THREE.PlaneGeometry(64, 16, 640, 80)
+const groundGeometry = new THREE.PlaneGeometry(64, 64, 400, 400)
 const groundMaterial = new THREE.ShaderMaterial({
   vertexShader: groundVS,
   fragmentShader: groundFS,
-  uniforms: {
+  uniforms: { 
     time: { value: 0 },
     resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
   },
@@ -43,7 +66,7 @@ const groundMaterial = new THREE.ShaderMaterial({
 const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial)
 groundMesh.rotation.x = -Math.PI / 2
 groundMesh.position.y = -1
-scene.add(groundMesh)
+objectGroup.add(groundMesh)
 
 
 
@@ -94,21 +117,32 @@ function createShip(): THREE.Object3D {
 
 const ship = createShip();
 ship.position.y = 0.7;
-scene.add(ship);
+objectGroup.add(ship);
 ship.rotation.y = Math.PI / 2; // point forward along +x
-ship.scale.set(2, 2, 2);
+ship.scale.set(4, 4, 4);
 
-camera.position.y = 0.5
-camera.position.z = 5
+
+
+
 
 function animate() {
   requestAnimationFrame(animate)
-  camera.position.y = 0.5 + Math.sin(timer.getElapsed() + .2) * 0.25;
   ship.position.y = 0.7 + Math.sin(timer.getElapsed() * 4) * 0.1;
   ship.rotation.x = Math.sin(timer.getElapsed()) * 0.1;
   ship.rotation.y = Math.PI / 2 + Math.sin(timer.getElapsed() * 0.5 + .1) * 0.1;
   ship.rotation.z = Math.cos(0.2 * timer.getElapsed()) * 0.05;
-  updateUniforms()
+
+  // Update OrbitControls target to follow the ship
+  ship.getWorldPosition(shipTarget);
+  controls.target.copy(shipTarget);
+  
+  // Clamp camera to never go below ground
+  if (camera.position.y < 3) {
+    camera.position.y = 3;
+  }
+
+  updateUniforms();
+  controls.update();
   renderer.render(scene, camera)
 }
 
