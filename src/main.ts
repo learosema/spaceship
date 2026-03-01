@@ -10,6 +10,8 @@ import backgroundVS from './shaders/background.vs'
 import backgroundFS from './shaders/background.fs'
 import groundVS from './shaders/ground.vs'
 import groundFS from './shaders/ground.fs'
+import shipVS from './shaders/ship.vs'
+import shipFS from './shaders/ship.fs'
 
 
 
@@ -106,7 +108,11 @@ function updateUniforms() {
 
 
 function createShip(): THREE.Object3D {
-  const mat = new THREE.MeshNormalMaterial();
+  const mat = new THREE.ShaderMaterial({
+    vertexShader: shipVS,
+    fragmentShader: shipFS,
+    uniforms: {}
+  });
 
   const ship = new THREE.Group();
 
@@ -137,6 +143,30 @@ function createShip(): THREE.Object3D {
   rightWing.position.z = -0.4;
   ship.add(rightWing);
 
+  const warpWingGeom = new THREE.CylinderGeometry(0.1, 0.1, 1.5, 8);
+  warpWingGeom.rotateZ(Math.PI / 2);
+  const leftWarpWing = new THREE.Mesh(warpWingGeom, mat);
+  leftWarpWing.position.z = -.55;
+  ship.add(leftWarpWing);
+
+  const rightWarpWing = leftWarpWing.clone();
+  
+  rightWarpWing.position.z = .55;
+  ship.add(rightWarpWing);
+
+
+  const engineGeom = new THREE.ConeGeometry(0.15,  0.125, 8);
+  const engine1 = new THREE.Mesh(engineGeom, mat);
+  engine1.rotation.z = Math.PI / 2;
+  engine1.rotation.y = Math.PI; // point backwards along -x
+  engine1.position.set(-1, 0, 0.15);
+  ship.add(engine1);
+
+  const engine2 = engine1.clone();
+  engine2.position.z = -0.15;
+  ship.add(engine2);
+
+
   return ship;
 }
 
@@ -152,7 +182,7 @@ ship.scale.set(4, 4, 4);
 
 function animate() {
   requestAnimationFrame(animate)
-  ship.position.y = 0.7 + Math.sin(timer.getElapsed() * 4) * 0.1;
+  ship.position.y = 0.8 + Math.sin(timer.getElapsed() * 4) * 0.1;
   ship.rotation.x = Math.sin(timer.getElapsed()) * 0.1;
   ship.rotation.y = Math.PI / 2 + Math.sin(timer.getElapsed() * 0.5 + .1) * 0.1;
   ship.rotation.z = Math.cos(0.2 * timer.getElapsed()) * 0.05;
