@@ -1,5 +1,10 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import postVS from './shaders/postprocess.vs'
+import postFS from './shaders/postprocess.fs'
 import './style.css'
 import backgroundVS from './shaders/background.vs'
 import backgroundFS from './shaders/background.fs'
@@ -33,6 +38,25 @@ controls.update()
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, canvas })
 renderer.setSize(window.innerWidth, window.innerHeight)
+
+// Post-processing scaffolding -- placeholder ShaderPass uses files you can edit
+let composer: any = null
+let postPass: any = null
+composer = new EffectComposer(renderer)
+const renderPass = new RenderPass(scene, camera)
+composer.addPass(renderPass)
+
+const postShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    time: { value: 0 },
+    resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+  },
+  vertexShader: postVS,
+  fragmentShader: postFS
+}
+postPass = new ShaderPass(postShader, 'tDiffuse')
+composer.addPass(postPass)
 
 const backgroundShaderMaterial = new THREE.ShaderMaterial({
   vertexShader: backgroundVS,
@@ -77,6 +101,7 @@ function updateUniforms() {
   timer.update()
   backgroundShaderMaterial.uniforms.time.value = timer.getElapsed()
   groundMaterial.uniforms.time.value = timer.getElapsed()
+  if (postPass && postPass.uniforms && postPass.uniforms.time) postPass.uniforms.time.value = timer.getElapsed()
 }
 
 
@@ -143,7 +168,8 @@ function animate() {
 
   updateUniforms();
   controls.update();
-  renderer.render(scene, camera)
+  // render via composer so the post-process ShaderPass runs
+  if (composer) composer.render()
 }
 
 animate()
@@ -152,4 +178,5 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight
   camera.updateProjectionMatrix()
   renderer.setSize(window.innerWidth, window.innerHeight)
+  if (composer) composer.setSize(window.innerWidth, window.innerHeight)
 })
